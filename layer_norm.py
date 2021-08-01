@@ -14,7 +14,7 @@ import torch.nn as nn
 
 class LayerNorm(nn.Module):
     def __init__(self, dimension, eps):
-        super().__init__()
+        super(LayerNorm, self).__init__()
 
         self.gamma = nn.Parameter(torch.ones(dimension))
         self.beta = nn.Parameter(torch.zeros(dimension))
@@ -22,5 +22,5 @@ class LayerNorm(nn.Module):
 
     def forward(self, inputs):
         mean = torch.mean(inputs, dim=-1, keepdim=True)
-        std = torch.std(inputs, dim=-1, unbiased=False, keepdim=True)
-        return self.gamma * (inputs - mean) / (std + self.eps) + self.beta
+        var = torch.var(inputs, dim=-1, unbiased=False, keepdim=True)
+        return self.gamma * (inputs - mean) / torch.sqrt(var + self.eps) + self.beta
