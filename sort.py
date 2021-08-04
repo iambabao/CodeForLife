@@ -28,5 +28,3 @@ def quick_sort(arr):
         index = partition(arr, left, right)
         quick_sort(arr[:index])
         quick_sort(arr[index + 1:])
-
-
