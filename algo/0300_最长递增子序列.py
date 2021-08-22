@@ -30,6 +30,7 @@ class Solution:
         return len(dp)
 
 
+# 第一个大于等于val的位置
 def lower_bound(arr, val):
     left, right = 0, len(arr)
     while left < right:
@@ -41,6 +42,7 @@ def lower_bound(arr, val):
     return left
 
 
+# 第一个大于val的位置
 def upper_bound(arr, val):
     left, right = 0, len(arr)
     while left < right:
