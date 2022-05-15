@@ -15,84 +15,67 @@ def tokenize(seq):
 
 class Trie:
     def __init__(self, seqs=None):
-        self.seqs = []
-
         self.nodes = [[]]  # stores the matched sequences
         self.next_index = [{}]  # stores the index of next node
 
         if seqs is not None:
-            self.add_seqs(seqs)
+            for seq in seqs:
+                self.insert_seq(seq)
 
-    def add_seqs(self, seqs):
-        for seq in seqs:
-            if seq in self.seqs:
-                continue
-
-            tokens = tokenize(seq)
-            seq_id = len(self.seqs)
-            self.seqs.append(seq)
-
-            index = 0
-            for token in tokens:
-                if token not in self.next_index[index]:
-                    self.next_index[index][token] = len(self.nodes)
-                    self.nodes.append([])
-                    self.next_index.append({})
-                index = self.next_index[index][token]
-            self.nodes[index].append(seq_id)
-
-    def match(self, seq):
-        def _push(index, match):
-            if (index, match) not in visited:
-                queue.append((index, match))
-                visited.append((index, match))
-
-        queue_head = 0
-        queue = [(0, 0)]
-        visited = []
-        matched_results = []
-
+    def insert_seq(self, seq):
         tokens = tokenize(seq)
-        while queue_head < len(queue):
-            cur_index, cur_match = queue[queue_head]
-            queue_head += 1
 
-            if cur_match == len(tokens):
-                for seq_id in self.nodes[cur_index]:
-                    matched_results.append(self.seqs[seq_id])
-            if cur_match >= len(tokens):
-                continue
-            for next_token, next_index in self.next_index[cur_index].items():
-                if next_token == tokens[cur_match]:
-                    _push(next_index, cur_match + 1)
+        index = 0
+        for token in tokens:
+            if token not in self.next_index[index]:
+                self.next_index[index][token] = len(self.nodes)
+                self.nodes.append([])
+                self.next_index.append({})
+            index = self.next_index[index][token]
+        self.nodes[index].append(seq)  # TODO: de-duplication
 
-        return matched_results
-
-    def match_prefix(self, seq):
-        def _push(index, match):
-            if (index, match) not in visited:
-                queue.append((index, match))
-                visited.append((index, match))
-
-        queue_head = 0
-        queue = [(0, 0)]
-        visited = []
-        matched_results = []
-
+    def delete_seq(self, seq):
         tokens = tokenize(seq)
-        while queue_head < len(queue):
-            cur_index, cur_match = queue[queue_head]
-            queue_head += 1
 
-            if cur_match >= len(tokens):
-                for seq_id in self.nodes[cur_index]:
-                    matched_results.append(self.seqs[seq_id])
-            for next_token, next_index in self.next_index[cur_index].items():
-                if cur_match < len(tokens):
-                    if next_token == tokens[cur_match]:
-                        _push(next_index, cur_match + 1)
-                else:
-                    _push(next_index, cur_match + 1)
+        cur_index, cur_match = 0, 0
+        while cur_match < len(tokens):
+            cur_token = tokens[cur_match]
+            if cur_token not in self.next_index[cur_index]:
+                return
+            cur_index, cur_match = self.next_index[cur_index][cur_token], cur_match + 1
+        self.nodes[cur_index] = []
+
+    def exact_match(self, seq):
+        tokens = tokenize(seq)
+
+        cur_index, cur_match = 0, 0
+        while cur_match < len(tokens):
+            cur_token = tokens[cur_match]
+            if cur_token not in self.next_index[cur_index]:
+                return None
+            cur_index, cur_match = self.next_index[cur_index][cur_token], cur_match + 1
+
+        return self.nodes[cur_index][0] if len(self.nodes[cur_index]) > 0 else None
+
+    def prefix_match(self, seq):
+        tokens = tokenize(seq)
+
+        cur_index, cur_match = 0, 0
+        while cur_match < len(tokens):
+            cur_token = tokens[cur_match]
+            if cur_token not in self.next_index[cur_index]:
+                return []
+            cur_index, cur_match = self.next_index[cur_index][cur_token], cur_match + 1
+
+        queue = [cur_index]
+        queue_head = 0
+        matched_results = []
+        while queue_head < len(queue):
+            cur_index = queue[queue_head]
+            queue_head += 1
+            matched_results.extend(self.nodes[cur_index])
+            for next_index in self.next_index[cur_index].values():
+                queue.append(next_index)
 
         return matched_results
 
@@ -107,9 +90,9 @@ def main():
 
     trie = Trie(sequences)
 
-    results = trie.match('import numpy')
+    results = trie.exact_match('import numpy')
     print(results)
-    results = trie.match_prefix('import numpy')
+    results = trie.prefix_match('import numpy')
     print(results)
 
 

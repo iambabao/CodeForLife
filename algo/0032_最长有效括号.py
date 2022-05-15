@@ -24,9 +24,8 @@ class Solution:
             if s[i - 1] == ')':  # 必须以）为结尾
                 if s[i - 2] == '(':  # 前一个token为（，直接和前一个token匹配
                     dp[i] = dp[i - 2] + 2
-                elif i - dp[i - 1] - 2 >= 0 and s[i - dp[i - 1] - 2] == '(':  # 前一个token为），再往前回溯dp[i - 1]个token匹配
+                elif i - dp[i - 1] - 2 >= 0 and s[i - dp[i - 1] - 2] == '(':  # 前一个token为），再往前回溯dp[i - 1] + 1个token匹配
                     dp[i] = dp[i - 1] + dp[i - dp[i - 1] - 2] + 2
                 answer = max(answer, dp[i])
-        print(dp)
 
         return answer
